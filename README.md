@@ -272,19 +272,3 @@ Lưu mới        : 87
 Thất bại       : 3
 Tổng trong DB  : 87
 ```
-
-## Checklist nhanh
-
-- [x] Crawl danh sách URL phim từ sitemap
-- [x] Trích xuất thông tin phim bằng Jsoup
-- [x] Lưu dữ liệu vào SQLite
-- [x] Backup dữ liệu bằng JSONL
-- [x] Bỏ qua phim đã tồn tại trong database
-- [x] Có API đăng nhập
-- [x] Có xác thực bằng token
-- [x] Có API tra cứu phim
-- [x] Có API demo `/prime`
-- [x] Có cache TTL
-- [x] Có rate limit theo user
-- [x] Đóng gói JAR kèm đầy đủ thư viện
-- [x] Có Dockerfile và script hỗ trợ kiểm tra/chạy server
