@@ -1,82 +1,96 @@
-# Bai2_6
+# Bài 2.6
 
-Cong cu crawl du lieu phim viet bang Java, thu thap thong tin tu [toivote.com](https://toivote.com), luu vao SQLite va cung cap HTTP API de tra cuu du lieu phim.
+Công cụ crawl dữ liệu phim viết bằng Java, thu thập thông tin từ [toivote.com](https://toivote.com), lưu vào SQLite và cung cấp HTTP API để tra cứu dữ liệu phim.
 
-## Tong quan
+## Tổng quan
 
-Du an gom 2 che do chinh:
+Dự án gồm 2 chế độ chính:
 
-- **Che do crawl**: lay danh sach URL phim tu sitemap cua toivote.com, crawl thong tin, luu vao SQLite va ghi them file backup JSONL
-- **Che do web service**: cung cap API dang nhap va tra du lieu phim theo URL, co cache TTL va rate limit
+- **Chế độ crawl**: lấy danh sách URL phim từ sitemap của toivote.com, crawl thông tin, lưu vào SQLite và ghi thêm file backup JSONL
+- **Chế độ web service**: cung cấp API đăng nhập và tra dữ liệu phim theo URL, có cache TTL và rate limit
 
-## Tinh nang
+## Tính năng
 
-- Thu thap thong tin phim: tieu de, nam san xuat, quoc gia, the loai, dao dien, dien vien
-- Lay danh sach URL phim tu `https://toivote.com/sitemap.xml`
-- Luu du lieu vao SQLite
-- Ghi backup de phong vao file JSONL tren disk
-- Bo qua phim da co san trong database
-- Web service tra ve JSON da format dep
-- Dang nhap truoc khi su dung API
-- Cache TTL cho API `/movie` de giam so lan truy cap database
-- Rate limit cho tung user
-- Dong goi jar co day du thu vien kem theo
+- Thu thập thông tin phim: tiêu đề, năm sản xuất, quốc gia, thể loại, đạo diễn, diễn viên
+- Lấy danh sách URL phim từ `https://toivote.com/sitemap.xml`
+- Lưu dữ liệu vào SQLite
+- Ghi backup dự phòng vào file JSONL trên disk
+- Bỏ qua phim đã có sẵn trong database
+- Web service trả về JSON đã format đẹp
+- Đăng nhập trước khi sử dụng API
+- Cache TTL cho API `/movie` để giảm số lần truy cập database
+- Rate limit cho từng user
+- Đóng gói JAR có đầy đủ thư viện kèm theo
 
-## Cong nghe su dung
+## Công nghệ sử dụng
 
-| Thanh phan | Thu vien / Cong nghe |
+| Thành phần | Thư viện / Công nghệ |
 |---|---|
-| Ngon ngu | Java 21 |
+| Ngôn ngữ | Java 21 |
 | Build | Maven |
 | Crawl HTML | Jsoup 1.17.2 |
 | JSON | Gson 2.10.1 |
 | Cache | Guava 33.2.1-jre |
-| Co so du lieu | SQLite |
+| Cơ sở dữ liệu | SQLite |
 | JDBC | sqlite-jdbc 3.47.1.0 |
 | Logging | SLF4J 2.0.12 + Logback 1.5.3 |
-| Dong goi | `maven-assembly-plugin` (`jar-with-dependencies`) |
+| Đóng gói | `maven-assembly-plugin` (`jar-with-dependencies`) |
 
-## Cau truc co ban
+## Cấu trúc cơ bản
 
 ```text
 src/main/java/org/CrawlUrlPhim/
-    Main.java                   Diem vao, ho tro 2 che do: crawl va server
-    cache/CacheTTL.java         Cache tu cai theo Map<K, V> co TTL
-    crawler/MovieCrawler.java   Trich xuat du lieu phim tu HTML
-    crawler/UrlRepository.java  Tim danh sach URL phim tu sitemap
-    db/DatabaseManager.java     Xu ly SQLite
-    model/Movie.java            Model du lieu phim
-    util/JsonEscaper.java       Ho tro ghi JSON an toan
+    Main.java                   Điểm vào, hỗ trợ 2 chế độ: crawl và server
+    cache/CacheTTL.java         Cache tự cài theo Map<K, V> có TTL
+    crawler/MovieCrawler.java   Trích xuất dữ liệu phim từ HTML
+    crawler/UrlRepository.java  Tìm danh sách URL phim từ sitemap
+    db/DatabaseManager.java     Xử lý SQLite
+    model/Movie.java            Model dữ liệu phim
+    util/JsonEscaper.java       Hỗ trợ ghi JSON an toàn
     util/JsonlBackupWriter.java Ghi backup JSONL
-    web/AuthHandler.java        Xu ly POST /login
-    web/AuthManager.java        Xac thuc va quan ly token
-    web/LoginRequest.java       Body dang nhap
-    web/MovieHandler.java       Xu ly GET /movie?url=...
+    web/AuthHandler.java        Xử lý POST /login
+    web/AuthManager.java        Xác thực và quản lý token
+    web/LoginRequest.java       Body đăng nhập
+    web/MovieHandler.java       Xử lý GET /movie?url=...
     web/PrimeHandler.java       API demo /prime
-    web/RateLimiter.java        Gioi han request theo user
-    web/WebServer.java          Khoi dong HTTP server
+    web/RateLimiter.java        Giới hạn request theo user
+    web/WebServer.java          Khởi động HTTP server
 ```
 
-## Co so du lieu
+## Cơ sở dữ liệu
 
-Du an luu du lieu vao file SQLite `data/movies.db`.
+Dự án lưu dữ liệu vào file SQLite:
 
-Bang chinh:
+```text
+data/movies.db
+```
+
+Bảng chính:
 
 ```text
 movies
 ```
 
-Cot chinh trong bang:
+Các cột chính trong bảng:
 
 ```text
-id, url, title, year, country, content_type, runtime_minutes,
-summary, genres_json, directors_json, actors_json, crawled_at
+id
+url
+title
+year
+country
+content_type
+runtime_minutes
+summary
+genres_json
+directors_json
+actors_json
+crawled_at
 ```
 
-## Build va chay
+## Build và chạy
 
-### Yeu cau
+### Yêu cầu
 
 - Java 21
 - Maven 3
@@ -87,34 +101,35 @@ summary, genres_json, directors_json, actors_json, crawled_at
 mvn clean package
 ```
 
-Sau khi build xong, file jar chay duoc se nam trong `target/` voi ten:
+Sau khi build xong, file JAR chạy được sẽ nằm trong `target/` với tên:
 
 ```text
 crawlurlphim-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
-### Chay che do crawl
+### Chạy chế độ crawl
 
-Khong truyen tham so nao:
+Không truyền tham số:
 
 ```bash
 java -jar target/crawlurlphim-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
-Che do nay se:
+Chế độ này sẽ:
 
-- Lay danh sach URL phim tu sitemap
-- Crawl tung phim
-- Luu vao SQLite
-- Ghi backup JSONL vao `data/backup/movie-records.jsonl`
+- Lấy danh sách URL phim từ sitemap
+- Crawl từng phim
+- Lưu dữ liệu vào SQLite
+- Ghi backup JSONL vào `data/backup/movie-records.jsonl`
+- Bỏ qua các phim đã tồn tại trong database
 
-### Chay che do web service
+### Chạy chế độ web service
 
 ```bash
 java -jar target/crawlurlphim-1.0-SNAPSHOT-jar-with-dependencies.jar --server
 ```
 
-Co the set heap nhu sau:
+Có thể thiết lập heap:
 
 ```bash
 java -Xms125m -Xmx512m -jar target/crawlurlphim-1.0-SNAPSHOT-jar-with-dependencies.jar --server
@@ -122,7 +137,7 @@ java -Xms125m -Xmx512m -jar target/crawlurlphim-1.0-SNAPSHOT-jar-with-dependenci
 
 ## API
 
-### Dang nhap
+### Đăng nhập
 
 `POST /login`
 
@@ -135,7 +150,7 @@ Body:
 }
 ```
 
-Phan hoi thanh cong:
+Phản hồi thành công:
 
 ```json
 {
@@ -144,7 +159,7 @@ Phan hoi thanh cong:
 }
 ```
 
-### Lay thong tin phim
+### Lấy thông tin phim
 
 `GET /movie?url=...`
 
@@ -153,6 +168,8 @@ Header:
 ```text
 Authorization: Bearer <token>
 ```
+
+API sử dụng URL phim để tìm thông tin tương ứng trong database.
 
 ### API demo prime
 
@@ -164,37 +181,110 @@ Header:
 Authorization: Bearer <token>
 ```
 
-## Tai khoan mau
+API này yêu cầu xác thực trước khi sử dụng.
 
-- `admin / admin123`
-- `user1 / pass1`
+## Tài khoản mẫu
+
+| Username | Password |
+|---|---|
+| `admin` | `admin123` |
+| `user1` | `pass1` |
 
 ## Cache
 
-Du an co 2 lop cache phuc vu hai muc dich:
+Dự án có 2 lớp cache phục vụ hai mục đích:
 
-- `src/main/java/org/CrawlUrlPhim/cache/CacheTTL.java`: cache tu cai theo `Map<K, V>`, co TTL va hit rate
-- `src/main/java/org/CrawlUrlPhim/web/MovieHandler.java`: cache Guava cho API `/movie`
+- `src/main/java/org/CrawlUrlPhim/cache/CacheTTL.java`: cache tự cài theo `Map<K, V>`, có TTL và hit rate
+- `src/main/java/org/CrawlUrlPhim/web/MovieHandler.java`: sử dụng Guava Cache cho API `/movie`
 
-Thong so cache cua API `/movie`:
+Thông số cache của API `/movie`:
 
 - `expireAfterAccess`: `10s`
 - `expireAfterWrite`: `20s`
 
-## Ghi chu
+Mục đích của cache là giảm số lần truy cập database khi cùng một URL phim được yêu cầu nhiều lần trong thời gian ngắn.
 
-- Database mac dinh: `data/movies.db`
-- Backup mac dinh: `data/backup/movie-records.jsonl`
-- Project co `Dockerfile` va `run-server.sh` de phuc vu viec deploy sau nay
-- `compile-check.ps1` va `verify-server.ps1` la script ho tro kiem tra local
+## Rate Limit
 
-## Ket qua dau ra cua che do crawl
+API web service có cơ chế giới hạn request theo từng user.
+
+Mỗi user được theo dõi riêng dựa trên thông tin xác thực trong request. Khi vượt quá giới hạn, server sẽ từ chối request thay vì tiếp tục xử lý.
+
+## Quy trình crawl
+
+Quy trình crawl hoạt động theo các bước:
+
+1. Đọc sitemap từ `https://toivote.com/sitemap.xml`
+2. Lấy danh sách URL phim
+3. Kiểm tra URL đã tồn tại trong SQLite hay chưa
+4. Bỏ qua những phim đã có trong database
+5. Gửi request lấy HTML của trang phim
+6. Sử dụng Jsoup để phân tích HTML
+7. Trích xuất thông tin phim
+8. Lưu dữ liệu vào SQLite
+9. Ghi thêm bản backup vào file JSONL
+
+Thông tin phim được thu thập gồm:
+
+- Tiêu đề
+- Năm sản xuất
+- Quốc gia
+- Loại nội dung
+- Thời lượng
+- Tóm tắt
+- Thể loại
+- Đạo diễn
+- Diễn viên
+- Thời gian crawl
+
+## Backup JSONL
+
+Ngoài SQLite, dữ liệu phim được ghi thêm vào file:
 
 ```text
-URLs da xu ly  : 100
-Luu moi        : 87
-Da co trong DB : 10
-That bai       : 3
-Tong trong DB  : 87
+data/backup/movie-records.jsonl
 ```
 
+Mỗi dòng trong file tương ứng với một bản ghi phim ở định dạng JSON.
+
+Việc sử dụng JSONL giúp có thêm bản sao dữ liệu trên disk trong trường hợp database gặp vấn đề.
+
+## Ghi chú
+
+- Database mặc định: `data/movies.db`
+- Backup mặc định: `data/backup/movie-records.jsonl`
+- Sitemap mặc định: `https://toivote.com/sitemap.xml`
+- Project có `Dockerfile` để phục vụ việc đóng gói và triển khai
+- `run-server.sh` hỗ trợ chạy server
+- `compile-check.ps1` hỗ trợ kiểm tra việc biên dịch trên Windows
+- `verify-server.ps1` hỗ trợ kiểm tra server local
+- Chế độ mặc định khi không truyền tham số là chế độ crawl
+- Tham số `--server` dùng để khởi động web service
+
+## Kết quả đầu ra của chế độ crawl
+
+Ví dụ:
+
+```text
+URLs đã xử lý  : 100
+Lưu mới        : 87
+Đã có trong DB : 10
+Thất bại       : 3
+Tổng trong DB  : 87
+```
+
+## Checklist nhanh
+
+- [x] Crawl danh sách URL phim từ sitemap
+- [x] Trích xuất thông tin phim bằng Jsoup
+- [x] Lưu dữ liệu vào SQLite
+- [x] Backup dữ liệu bằng JSONL
+- [x] Bỏ qua phim đã tồn tại trong database
+- [x] Có API đăng nhập
+- [x] Có xác thực bằng token
+- [x] Có API tra cứu phim
+- [x] Có API demo `/prime`
+- [x] Có cache TTL
+- [x] Có rate limit theo user
+- [x] Đóng gói JAR kèm đầy đủ thư viện
+- [x] Có Dockerfile và script hỗ trợ kiểm tra/chạy server
