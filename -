@@ -1,0 +1,294 @@
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+1. Viết chương trình nén dữ liệu time-series lấy từ api bằng phương pháp kiểm tra biên độ giao 
+động. Nếu data thay đổi lớn (vượt ngưỡng so với trước đó) thì sẽ ghi lại ngay giá trị đó, nhưng 
+nếu data không có sự thay đổi lớn nào thì định kỳ sau một thời gian nhất định vẫn phải ghi data 
+đó xuống. 
+- Lưu ý: mỗi lần lấy data mới thì so sánh với dữ liệu cuối cùng được ghi nhận gần nhất (vượt 
+ngưỡng hoặc sau thời gian), không phải dữ liệu query của lần trước đó.  
+- Tạo maven project, sau đó add thêm 2 thư viện logback, và json để parse một dữ liệu json từ 
+một webservice tự viết (giả lập để trả lại một object json thống kê, trong đó có field `user` là số 
+ngẫu nhiên từ 4000 đến 4500). Phân tích dữ liệu json để lấy field `user`. Lưu ý, dữ liệu query từ 
+webservice trên phải thay đổi sau mỗi lần gọi.  
+ 
+Thực hiện phương pháp nén dữ liệu time-series khi lấy được từ api trên với ngưỡng biến đổi 2% 
+theo phương pháp sau: 
+a. Sử dụng ScheduledExecutorService lập lịch lấy dữ liệu mỗi 2s một lần 
+b. Nếu số user trong field user ở json trả ra mà lớn hơn 2% so với số user lần cuối cùng 
+ghi vào file log thì sử dụng logback ghi số user vào file log với level là INFO, nếu không 
+thì sau 12s ghi lại số user đó vào file log với level DEBUG. 
+c. Khi truy vấn chỉ cho phép API trả data trong vòng 10ms. Nếu quá 10ms api không trả kết 
+quả hoặc resp bị lỗi thì ghi log level ERROR với nội dung lỗi tương ứng (timeout hoặc 
+content error). 
+d. Setup file log rolling sau mỗi 1 phút ghi ra một file mới. Một file dung lượng tối đa là 
+1MB. 
+e. Tổng dung lượng lưu của cả thư mục log không quá 20MB, và thời gian lưu trữ file 
+không quá 1 ngày. 
+Ví dụ data lấy được như sau kèm với action ghi log theo level nào:  
+0s 2s 4s 6s 8s 10s 12s 14s 16s 18s 20s 22s 
+1032 1030 1092 1091 1092 1090 1089 1090 1132 1032 1232 1232 
+Info Ko 
+ghi 
+Info Ko 
+ghi 
+Ko 
+ghi 
+Ko 
+ghi 
+Ko 
+ghi 
+Ko 
+ghi 
+Debug Ko 
+ghi 
+Info Ko 
+ghi 
+ 
+2. Viết chương trình đơn giản để crawl data từ một kho url. Các Url này là các nội dung của các 
+movie của trang https://toivote.com/. Tạo maven project với project encode là utf-8. Sử dụng thư viện 
+lấy nội dung html của các url trên và nội dung của bài báo hoặc thông số kỹ thuật của sản phẩm được 
+ghi lại. Dữ liệu kho ~100 URL movie bất kỳ và nội dung sau khi crawl về sẽ lưu ở SQLite, data được 
+backup trên disk. 
+ Nội dung cần bóc tác bao gồm: 
+  + Tiêu đề phim 
+  + Năm sản xuất 
+  + Đất nước 
+  + Thể loại (danh sách) 
+  + Đạo diễn (Danh sách nếu có) 
+  + Diễn viên (Danh sách nếu có) 
+Tiếp theo build toàn bộ project thành một file jar duy nhất chứa tất cả các thư viện đi kèm (sử 
+dụng plug-in jar-with-dependencies của maven).  
+Tạo một máy ảo linux sử dụng Docker hoặc subsystem (lưu ý không cài các bài linux có giao 
+diện). Tiến hành cài openssh trên máy ảo, Sử dụng một tool SSP (như xmanager, PuTTY, 
+powershell…) trên máy thật và remote ssh vào máy ảo sử dụng ssh-key mà không sử dụng phương 
+pháp remote bằng password. 
+Copy file jar vừa build vào trong máy ảo sử dụng câu lệnh SCP. Sau đó dùng shell script của 
+linux (file .sh) để chạy file jar mỗi 5 giây một lần. 
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+ 
+3. Viết một webservice đơn giản với việc trả lại nội dung truyền vào theo url movie đã crawl được ở 
+bài 2. Kết quả trả lại dưới dạng json đã được format đẹp. 
+   Hãy chạy chương trình trong chế độ debug, sử dụng đặt điều kiện vào breakpoint để dừng chương 
+trình tại diễn viên có tên bắt đầu băng chữ “A”. Lưu ý: không thêm các câu lệnh rẽ nhánh vào code 
+để thực hiện debug. 
+ 
+4.  Hãy tự design một cache riêng cho webservice ở bài 3 để giúp giảm số lần truy cập db nếu user 
+truy cập lấy các url giống nhau. Sử dụng cache bằng dạng Map<> để trả lại ngay kết quả cho số muốn 
+n nhập vào nếu số n đã tồn tại trong cache. Ngoài ra, Cache này có thêm TTL (thời gian sống cho 
+từng phần tử): 
+- sau khi ghi một phần tử mới vào Cache thì sau m giây thì sẽ tự xóa phần tử này đi 
+- nếu sau n giây không có request đọc phần tử nào đó trong Cache (sử dụng hàm get vào 
+phần tử đó) thì Cache cũng tự xóa đi. 
+Viết cache này bằng cách tạo ra một Class mới là CacheTTL<K, V> implements Map<K, 
+V>, trong đó đảm bảo những phương thức sau: 
+• CacheTTL(int n, int m) : hàm khởi tạo với 2 giá trị tham số n, m  
+• V get(K key) : hàm trả lại value tương ứng với key 
+• void put(K key, V value): hàm đẩy cặp giá trị tương ứng vào cache 
+• Map<K,V> getMap(): hàm trả lại tất cả các thành phần còn lại trong cache 
+• Int getHitRate(): hàm trả lại tỷ lệ hit khi sử dụng cache.  
+ 
+ 
+5. Thay thế cache trên bài 4 bằng thư viện Guava cache, vẫn xóa sau 10s không có request và 20s sau 
+khi ghi vào cache. Upload project lên github.com, đồng thời cùng lúc làm 2 việc sau để tạo confict 
+code: 
+• Vào project trên github, mở một file trên trình duyệt, sửa nội dung file thêm dòng /* 
+Chinh sua tren server github */, sau đó lưu lại 
+• Vào project trên máy, cũng vào file đó nhưng thêm dòng /* Chinh sua tren server may 
+client */, sau đó Commit và Push lên git server 
+       Hãy merge và edit conflict 2 đoạn code trên và sửa 2 dòng trên thành dòng comment sau: /* Chinh 
+sua hop nhat giua server & client */ NOTE: PROJECT ĐẨY LÊN GIT KHÔNG NÊN ĐỂ PUBLIC. 
+ 
+6. Deploy project bài 5 thông qua git clone và build file jar bằng lệnh của maven trên máy ảo (docker 
+hoặc subsystem). Hãy set heap size tối đa khi chạy chương trình là 512MB, và heap size khi mới khởi 
+tạo là 125MB.  
+ Sửa webservice trên, yêu cầu phải có bước đăng nhập trước khi sử dụng. Sau khi đăng nhập thành 
+công mới có thể sử dụng api. (http://localhost:8080/prime?n=10000 Lưu ý: Không viết giao điện đăng 
+nhập). Yêu cầu mỗi user không request quá 2 lần mỗi 5s và 10 lần mỗi 1 phút. 
+  
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+ 
+7.1. Viết một ứng dụng client – server để đồng bộ dữ liệu giữa các client với nhau dựa vào http 
+restful. 
+ 1. Bạn cần phát triển một công cụ đồng bộ dữ liệu nội bộ siêu nhẹ tên là SyncVerse. Công 
+cụ này giúp đồng bộ các file cấu hình và tài liệu làm việc giữa nhiều máy trạm trong môi trường 
+doanh nghiệp mà không cần mở bất kỳ WebServer/Port nào ở phía Client (để tránh rủi ro bảo mật 
+và phiền hà về cấu hình NAT/Firewall). 
+2. Nhiệm vụ của bạn: Xây dựng hệ thống gồm Central Server (RESTful API) và các Client 
+Daemon CLI tự động phát hiện và đồng bộ file theo thời gian thực. 
+ 
+3. Ràng buộc kỹ thuật (Technical Constraints) 
+• Protocol: Sử dụng HTTP RESTful (kết hợp Polling / Long-Polling) cho giao tiếp 
+Client-Server. 
+• Zero Client Webserver: Client tuyệt đối KHÔNG mở port hay chứa webserver. 
+• Flat Directory: Folder đồng bộ là thư mục phẳng (không chứa thư mục con). 
+• File Size Cap: Kích thước mỗi file $\le$ 1MB. 
+• Executable Build: Đóng gói ra 2 file JAR độc lập: server.jar và client.jar. 
+     4. Protocol & Message Architecture 
+Toàn bộ luồng đồng bộ sẽ dựa trên 5 loại Message chuẩn hóa: 
+Message Type Luồng truyền Mô tả & Mục đích 
+HELLO Client $\rightarrow$ 
+Server 
+Đăng ký Client ID và khởi tạo phiên làm việc 
+mới 
+HEARTBEAT Client $\rightarrow$ 
+Server 
+Tín hiệu sống (Ping) gửi định kỳ để Server duy 
+trì session 
+FILE_CHANGE Client $\rightarrow$ 
+Server 
+Thông báo khi có file trong thư mục bị Tạo mới 
+/ Sửa / Xóa 
+RECONNECT Client $\rightarrow$ 
+Server 
+Báo hiệu kết nối lại sau một khoảng thời gian bị 
+Offline 
+DELTA_REQUEST Client $\leftrightarrow$ 
+Server 
+Yêu cầu Server trả về danh sách thay đổi (Delta) 
+mà Client đã bỏ lỡ 
+ 
+5. Vibe-Coding Roadmap (Phân chia Milestone) 
+Milestone 1: Handshake & Heartbeat 
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+• Server: Cung cấp các REST API cho phép đăng ký client (/api/register) và nhận 
+heartbeat (/api/heartbeat). 
+• Client: Đọc tham số dòng lệnh, gửi HELLO lấy Client ID và khởi chạy 
+Background Thread duy trì HEARTBEAT mỗi 3–5 giây. 
+Milestone 2: Live Monitor & Push Update 
+• Client: Dùng java.nio.file.WatchService để lắng nghe sự thay đổi file local. Khi 
+phát hiện biến động $\rightarrow$ tạo payload FILE_CHANGE gửi lên Server. 
+• Server: Tiếp nhận payload, lưu trữ trạng thái phiên bản mới nhất 
+(Version/Timestamp) và nội dung file. 
+Milestone 3: Auto-Healing & Catch-up Sync (Trọng tâm) 
+• Khi một Client bị ngắt kết nối (crash, ngắt mạng) rồi kết nối lại: 
+1. Client gửi RECONNECT kèm thông tin version/timestamp cuối cùng nó 
+ghi nhận. 
+2. Client phát DELTA_REQUEST để xin Server các file bị lệch phiên bản. 
+3. Server tính toán diff và trả về bản cập nhật $\rightarrow$ Client tự động 
+kéo về và cập nhật thư mục local cho khớp hoàn toàn. 
+ 
+6. Chuẩn khởi chạy dòng lệnh (Execution Spec) 
+Chạy Server: 
+Bash 
+java -jar server.jar AlphaServer 
+Chạy các Client song song (Mỗi Client quản lý một thư mục riêng): 
+Bash 
+# Terminal 1 - Client Alice 
+java -jar client.jar Alice_Node ./workspace_alice 
+ 
+# Terminal 2 - Client Bob 
+java -jar client.jar Bob_Node ./workspace_bob 
+ 
+# Terminal 3 - Client Charlie 
+java -jar client.jar Charlie_Node ./workspace_charlie 
+ 
+  
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+7.2. Viết ứng dụng instance chat đơn giản, các tính năng cần có: 
+• Đăng ký/đăng nhập user bằng tài khoản google đã có 
+• Kết bạn 
+• Chat 1-1 giữa 2 người 
+• Cho phép gửi ảnh trong khi chat 
+Server cần có (api) sau đây (yêu cầu bắt buộc): 
+• Đăng nhập 
+o Method: POST 
+o Input:  
+§ Username (body) 
+§ Password (hashed) (body) 
+o Output: Access Token 
+§ Access token được lưu trữ trên database của user, với thời gian tạo và 
+thời gian hết hạn. Nếu Access token bị hết hạn sẽ không thể sử dụng 
+được các api phía dưới. 
+• Lấy danh sách bạn bè: 
+o Method: GET 
+o Input: 
+§ Access Token (header) (không gửi thêm user name) 
+o Output:  
+§ Json: list<Username> là bạn của user đang request 
+• Send message: 
+o Method: POST 
+o Input: 
+§ Access Token (header) 
+§ Username: là username của người nhận (body) 
+§ Message (body) 
+• Body có thể là text hoặc ảnh hoặc file bất kỳ. 
+• Nếu message là dạng file thì lưu file đó vào thư mục storage/ 
+o Output: Status: 
+§ Nếu người nhận online (đang chờ long polling) thì trả lại là 1 
+§ Nếu người nhận không online thì cho message vào hàng chờ của người 
+nhận, và trả lại là 2.  
+§ Nếu người gửi không nằm trong danh sách bạn bè của người nhận thì sẽ 
+trả lại là 3 và không cho message vào hàng chờ của người nhận. 
+• Get new messages: 
+o Method: GET (long polling) trả lại khi có message mới, nếu không 10s sau sẽ trả 
+lại danh sách rỗng. 
+o Input: 
+§ Access Token (header) 
+o Process: 
+§ Trả lại ngay danh sách message trong hàng chờ của user request lên, nếu 
+user đó có ít nhất 1 message trong hàng chờ. 
+§ Đợi tối đa 10s, nếu không có message mới thì sẽ resp lại một danh sách 
+rỗng 
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+o Output: 
+§ List<Time, Sender, Message>: nếu dữ liệu người gửi là dạng file, thì chỉ 
+trả lại một link download file tương ứng. 
+• Get file 
+o Method: GET 
+o Input: 
+§ Access Token (header) 
+§ File name (url param) 
+o Output: 
+§ File 
+§ Nếu file không tồn tại, thì trả lại status 404. Lưu ý: các user không thể 
+truy cập vào file của nhau. 
+>> Database trên server sẽ được lưu trữ dưới dạng các file json. Hãy tạo sẵn 5 user, mỗi user có ít 
+nhất 1 bạn. 
+Client: Sử dụng Postman collection, tạo đủ các request cho bài này để giả lập cho việc 2 user đăng nhập, 
+lấy danh sách bạn bè, gửi message và nhận message mới. 
+  
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+8. XÂY DỰNG HỆ THỐNG BOOKVERSE 
+Yêu cầu chung: Hãy xây dựng một Web API + Web Application quản lý sách điện tử có tên 
+BookVerse. Hệ thống cho phép quản lý thông tin sách, upload và phục vụ ảnh bìa sách một cách 
+chuyên nghiệp. 
+I. Yêu cầu chức năng  
+1. Quản lý sách (CRUD) 
+o Thêm, sửa, xóa, xem chi tiết sách. 
+o Các trường thông tin: id, title, author, isbn, year, category, rating, description, 
+coverPath. 
+2. Upload và Quản lý Ảnh Bìa 
+o Hỗ trợ upload ảnh bìa (JPG, PNG, WebP). 
+o Khi upload phải tự động tạo 3 kích thước: thumbnail (200px), medium (500px), 
+large (1200px). 
+o Lưu ảnh theo cấu trúc thư mục: uploads/covers/yyyy/MM/id-size.webp. 
+3. Tìm kiếm và Liệt kê 
+o API phân trang, lọc theo thể loại, năm xuất bản, sắp xếp theo tên / năm / rating. 
+o Tìm kiếm full-text theo tên sách và tác giả. 
+4. Các API chính (phải có): 
+o GET /api/books?page=&size=&sort= 
+o GET /api/books/{id} 
+o POST /api/books (hỗ trợ upload ảnh) 
+o PUT /api/books/{id} 
+o DELETE /api/books/{id} 
+o GET /api/books/search?q=&category= 
+o GET /api/books/{id}/cover?size=large (trả về file ảnh) 
+II. Yêu cầu kỹ thuật  
+• Sử dụng Spring Boot 3 (ưu tiên) hoặc Spark Java. 
+• Sử dụng Spring Data JPA + PostgreSQL (hoặc H2 cho môi trường dev). 
+• Áp dụng Layered Architecture (Controller, Service, Repository, DTO). 
+• Sử dụng MapStruct để mapping DTO ↔ Entity. 
+• Validation dữ liệu đầu vào. 
+• Caching cho ảnh và một số API thường dùng. 
+• Viết OpenAPI (Swagger) documentation. 
+• Code phải sạch, có comment rõ ràng, tuân thủ Java naming convention. 
+ 
+ 
+ 
+III. Yêu cầu nâng cao  
+LƯU Ý: Project của các bài tập upload lên git thì phải để public để review code 
+• Bulk upload sách từ file Excel/CSV + upload nhiều ảnh cùng lúc. 
+• Tự động chuyển đổi ảnh sang định dạng WebP. 
+• Dockerize ứng dụng (Dockerfile + docker-compose.yml). 
+• Viết Unit Test cho Service layer. 
+• Frontend đơn giản để tương tác với API. 
+ 

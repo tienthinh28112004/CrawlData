@@ -1,0 +1,11 @@
+14:09:08.588 [main] INFO org.CrawlUrlPhim.db.DatabaseManager -- SQLite database initialised at F:\Bai2_6\data\movies.db
+14:09:08.594 [main] INFO org.CrawlUrlPhim.Main -- === Starting Web Server ===
+14:09:08.671 [main] INFO org.CrawlUrlPhim.web.MovieHandler -- MovieHandler started - Guava cache idleTTL=10s writeTTL=20s
+14:09:08.675 [main] INFO org.CrawlUrlPhim.web.WebServer -- CrawlUrl server started on http://localhost:8080
+14:09:08.677 [main] INFO org.CrawlUrlPhim.web.WebServer -- POST /login
+14:09:08.679 [main] INFO org.CrawlUrlPhim.web.WebServer -- GET /movie?url={{url}}
+14:09:08.681 [main] INFO org.CrawlUrlPhim.web.WebServer -- GET /prime?n=10000
+14:09:08.683 [main] INFO org.CrawlUrlPhim.web.WebServer -- Rate limits: 2 req/5s and 10 req/1min per user
+14:09:08.683 [main] INFO org.CrawlUrlPhim.web.WebServer -- Press Ctrl+C to stop.
+14:09:14.095 [virtual-34] INFO org.CrawlUrlPhim.web.AuthManager -- User 'admin' logged in successfully, token issued.
+14:09:14.096 [virtual-34] INFO org.CrawlUrlPhim.web.AuthHandler -- Login success for user 'admin'
