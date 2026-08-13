@@ -1,4 +1,4 @@
-# Bài 2.6
+# Crawl Data
 
 Công cụ crawl dữ liệu phim viết bằng Java, thu thập thông tin từ [toivote.com](https://toivote.com), lưu vào SQLite và cung cấp HTTP API để tra cứu dữ liệu phim.
 
